@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "general.h"
+#include "AmberLeds.h"
 
 //---------Amber Leds----------------------
 
@@ -50,10 +51,20 @@ ArcadeSwitch Switches[] =
   {RY_AB_L, RY_AB_S}
 };
 
+void (*fp[])(void) =
+{
+  SetAllOn,
+  SetAllOff,
+  SetLightOption1,
+  SetLightOption2,
+  SetLightOption3
+};
+
 uint8_t Button_Values = 0x0;
 uint8_t Prev_Button_Values = 0x0;
 
 const uint8_t Amount_Of_Switches = sizeof(Switches) / sizeof(ArcadeSwitch);
+
 
 //---------variable setup END--------------
 //---------Forward declared functions------

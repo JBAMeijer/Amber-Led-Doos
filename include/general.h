@@ -1,3 +1,6 @@
+#ifndef __GENERAL__H
+#define __GENERAL__H
+
 #include <stdint.h>
 
 static const uint8_t D0  = (uint8_t)0U;
@@ -14,3 +17,5 @@ static const uint8_t D10 = (uint8_t)10U;
 static const uint8_t D11 = (uint8_t)11U;
 static const uint8_t D12 = (uint8_t)12U;
 static const uint8_t D13 = (uint8_t)13U;
+
+#endif // __GENERAL__H
