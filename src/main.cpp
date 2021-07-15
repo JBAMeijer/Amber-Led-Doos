@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "general.h"
 #include "AmberLeds.h"
+#include "ArcadeSwitch.h"
 
 //---------Amber Leds----------------------
 
@@ -35,12 +36,6 @@
 //---------ArcadeButtons END---------------
 //---------variable setup------------------
 
-struct ArcadeSwitch
-{
-  const uint8_t m_LedPin;
-  const uint8_t m_SwitchPin;
-};
-
 ArcadeSwitch Switches[] = 
 {
   {LB_AB_L, LB_AB_S},
@@ -60,11 +55,13 @@ void (*fp[])(void) =
   SetLightOption3
 };
 
-uint8_t Button_Values = 0x0;
-uint8_t Prev_Button_Values = 0x0;
+LightOption lightOption;
 
 const uint8_t Amount_Of_Switches = sizeof(Switches) / sizeof(ArcadeSwitch);
 
+uint8_t Button_Values = 0x0;
+uint8_t Prev_Button_Values = 0x0;
+uint8_t Highest_Binary_Number;
 
 //---------variable setup END--------------
 //---------Forward declared functions------
@@ -72,6 +69,8 @@ const uint8_t Amount_Of_Switches = sizeof(Switches) / sizeof(ArcadeSwitch);
 void AmberLedSetup();
 void ButtonSetup();
 void CheckForMultipleBits();
+void SetRelatedLEDOnArcadeButton();
+LightOption GetRelatedLightIndexFromButtons();
 
 //---------Forward declared functions END--
 
@@ -89,13 +88,10 @@ void loop() {
 
   CheckForMultipleBits();
 
-  if(Button_Values != Prev_Button_Values && Button_Values != 0x3F)
+  if(Button_Values != Prev_Button_Values && Button_Values != Highest_Binary_Number)
   {
-    Prev_Button_Values = Button_Values;
-    for(int i = 0; i < Amount_Of_Switches; i++)
-    {
-      digitalWrite(Switches[i].m_LedPin, (Button_Values & (1 << i)) ? LOW : HIGH);
-    }
+    SetRelatedLEDOnArcadeButton();
+    lightOption = GetRelatedLightIndexFromButtons();
   }
   //Serial.println(Button_Values, BIN);
   delay(50);
@@ -110,6 +106,8 @@ void AmberLedSetup()
   digitalWrite(L_AL, LOW);
   digitalWrite(M_AL, LOW);
   digitalWrite(R_AL, LOW);
+
+  lightOption = SET_ALL_LIGHTS_OFF;
 }
 
 void ButtonSetup()
@@ -137,6 +135,9 @@ void ButtonSetup()
   pinMode(Switches[3].m_SwitchPin, INPUT_PULLUP);
   pinMode(Switches[4].m_SwitchPin, INPUT_PULLUP);
   pinMode(Switches[5].m_SwitchPin, INPUT_PULLUP);
+
+  for(int i = 0; i < Amount_Of_Switches; i++)
+    Highest_Binary_Number |= 1 << i; 
 }
 
 void CheckForMultipleBits()
@@ -149,4 +150,24 @@ void CheckForMultipleBits()
     else if(!(Button_Values & (1 << i)) && HasBeenSet == true)
       Button_Values |= (1 << i);
   }
+}
+
+void SetRelatedLEDOnArcadeButton()
+{
+  Prev_Button_Values = Button_Values;
+  for(int i = 0; i < Amount_Of_Switches; i++)
+  {
+    digitalWrite(Switches[i].m_LedPin, (Button_Values & (1 << i)) ? LOW : HIGH);
+  }
+}
+
+LightOption GetRelatedLightIndexFromButtons()
+{
+  for(uint8_t i = 0; i < Amount_Of_Switches; i++)
+  {
+    if(!(Button_Values & (1 << i)))
+      return (LightOption)i;
+  }
+
+  return NONE;
 }
